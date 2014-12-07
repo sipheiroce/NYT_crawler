@@ -2,6 +2,7 @@ from pyquery import PyQuery as pq
 import os
 import sys
 import datetime
+import time
 
 PHANTOMJS_PATH = "./bin/phantomjs"
 RES_DIR = "res"
@@ -12,6 +13,10 @@ def generate_js(year, month, day, topic, page=1):
     JS = JS + "url = \'http://query.nytimes.com/search/sitesearch/#/" + topic 
     JS = JS + "/from" + year + month + day + "to" + year + month + day
     JS = JS + "/allresults/" + str(page) + "/allauthors/oldest/\';\n"
+    JS = JS + "page.settings.resourceTimeout = 10000;\n"
+    JS = JS + "page.onResourceTimeout = function(e) {\n"
+    JS = JS + "phantom.exit(1);"
+    JS = JS + "};\n"
 
     JS = JS + "page.open(url, function (status) {\n"
     JS = JS + "    var js = page.evaluate(function () {\n"
@@ -36,9 +41,12 @@ def get_targets(year, month, day, topic, page):
 
 # return value tells if we have next page
 def get_pages(input, topic, date):
+    print "open ", input
     f = open(input, "r")
     html = f.read();
     f.close()
+    if len(html) == 0:
+        return False
     
     obj = pq(html)
     for item in obj.find("div.searchResults").children().children().find('a'):
@@ -73,7 +81,11 @@ def get_clean_content(input):
     f.close()
 
     obj = pq(html)
-    content = obj.find("title")[0].text + "\n" + obj.find("div.articleBody").find('p').text()
+    title = obj.find("title")[0].text 
+    body  = obj.find("div.articleBody").find('p').text()
+    if body == None:
+        body  = obj.find("div.area").find('p').text()
+    content = title + "\n" + body
     return content 
 
 # here year/mon/day are numbers
@@ -98,6 +110,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
         lf.flush()
         cmd = "rm " + RES_DIR + "/" + cur_year + "_" + cur_mon + "_"  + cur_day + "_" + str(page) + ".html"
         os.system(cmd)
+        #time.sleep(1)        
 
         if cur_year == end_year and cur_mon == end_mon and cur_day == end_day:
             break
@@ -115,7 +128,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
 
 
 
-do_job("1981", "01", "01", "1981", "01", "05", "japan")
+do_job("1987", "01", "05", "2013", "12", "31", "japan")
 
 #generate_js("1981", "01", "01",  "japan", 1)
 #get_targets("1981", "01", "01",  "japan", 1)
