@@ -51,11 +51,13 @@ def get_pages(input, topic, date):
     obj = pq(html)
     for item in obj.find("div.searchResults").children().children().find('a'):
         link = item.values()[0]
-        if "japan" in link.lower():
-            print link
-            fname = download_link(link, date)
-            clean_content = get_clean_content(fname)
-            out_f = open(fname[:-5] + ".txt", "w")
+        title = item.text_content()
+        if "japan" in title.lower():
+            print title
+            fname = "\"" + RES_DIR + "/" + date + "_" + title + ".html\""
+            download_link(link, fname, date)
+            clean_content = get_clean_content(RES_DIR + "/" + date + "_" + title + ".html")
+            out_f = open(RES_DIR + "/" + date + "_" + title + ".txt", "w")
             out_f.write(clean_content.encode('utf-8'))
             out_f.close()
 
@@ -66,21 +68,22 @@ def get_pages(input, topic, date):
 
 
 
-def download_link(url, date):
-    items = url.split('/')
-    fname = ""
-    if "?" in items[len(items)-1]:
-        fname = RES_DIR + "/" + date + "_" + items[len(items)-1].split("?")[0]
-    else:        
-        fname = RES_DIR + "/" + date + "_" + items[len(items)-1]
+def download_link(url, fname, date):
+    #items = url.split('/')
+    #fname = ""
+    #if "?" in items[len(items)-1]:
+    #    fname = RES_DIR + "/" + date + "_" + items[len(items)-1].split("?")[0]
+    #else:        
+    #    fname = RES_DIR + "/" + date + "_" + items[len(items)-1]
 
     cmd = "wget \"" + url + "\" -O " + fname
     print cmd
     os.system(cmd)
-    return fname
+    #return fname
 
 
 def get_clean_content(input):
+    print "input", input
     f = open(input, "r")
     html = f.read();
     f.close()
@@ -124,7 +127,8 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
         lf.flush()
         cmd = "rm " + RES_DIR + "/" + cur_year + "_" + cur_mon + "_"  + cur_day + "_" + str(page) + ".html"
         os.system(cmd)
-        #time.sleep(1)        
+        #time.sleep(1)  
+        
 
         if cur_year == end_year and cur_mon == end_mon and cur_day == end_day:
             break
