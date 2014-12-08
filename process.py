@@ -68,9 +68,14 @@ def get_pages(input, topic, date):
 
 def download_link(url, date):
     items = url.split('/')
-    fname = RES_DIR + "/" + date + "_" + items[len(items)-1]
-    cmd = "wget " + url + " -O " + fname
-    #print cmd
+    fname = ""
+    if "?" in items[len(items)-1]:
+        fname = RES_DIR + "/" + date + "_" + items[len(items)-1].split("?")[0]
+    else:        
+        fname = RES_DIR + "/" + date + "_" + items[len(items)-1]
+
+    cmd = "wget \"" + url + "\" -O " + fname
+    print cmd
     os.system(cmd)
     return fname
 
@@ -82,10 +87,19 @@ def get_clean_content(input):
 
     obj = pq(html)
     title = obj.find("title")[0].text 
+    content = title + "\n"
+
     body  = obj.find("div.articleBody").find('p').text()
+
     if body == None:
-        body  = obj.find("div.area").find('p').text()
-    content = title + "\n" + body
+        body = obj.find("div.area").find('p').text()
+
+    if body == None:
+        body = obj.find("NYT_TEXT").find("p").text()
+
+    if body != None:
+        content = content + body
+
     return content 
 
 # here year/mon/day are numbers
@@ -128,7 +142,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
 
 
 
-do_job("1987", "01", "05", "2013", "12", "31", "japan")
+do_job("2004", "09", "09", "2013", "12", "31", "japan")
 
 #generate_js("1981", "01", "01",  "japan", 1)
 #get_targets("1981", "01", "01",  "japan", 1)
