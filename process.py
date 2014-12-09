@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 import time
+import string
 
 PHANTOMJS_PATH = "./bin/phantomjs"
 RES_DIR = "res"
@@ -51,7 +52,7 @@ def get_pages(input, topic, date):
     obj = pq(html)
     for item in obj.find("div.searchResults").children().children().find('a'):
         link = item.values()[0]
-        title = item.text_content()
+        title = escape_name(item.text_content())
         if "japan" in title.lower():
             print title
             fname = "\"" + RES_DIR + "/" + date + "_" + title + ".html\""
@@ -105,6 +106,11 @@ def get_clean_content(input):
 
     return content 
 
+def escape_name(orig):
+    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    return ''.join(c for c in orig if c in valid_chars)
+
+
 # here year/mon/day are numbers
 def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
     cur_year = start_year
@@ -127,6 +133,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
         lf.flush()
         cmd = "rm " + RES_DIR + "/" + cur_year + "_" + cur_mon + "_"  + cur_day + "_" + str(page) + ".html"
         os.system(cmd)
+        #break
         #time.sleep(1)  
         
 
@@ -146,7 +153,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
 
 
 
-do_job("2004", "09", "09", "2013", "12", "31", "japan")
+do_job("2005", "01", "12", "2013", "12", "31", "japan")
 
 #generate_js("1981", "01", "01",  "japan", 1)
 #get_targets("1981", "01", "01",  "japan", 1)
