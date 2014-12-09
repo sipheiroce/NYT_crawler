@@ -42,7 +42,7 @@ def get_targets(year, month, day, topic, page):
 
 # return value tells if we have next page
 def get_pages(input, topic, date):
-    print "open ", input
+    #print "open ", input
     f = open(input, "r")
     html = f.read();
     f.close()
@@ -84,7 +84,7 @@ def download_link(url, fname, date):
 
 
 def get_clean_content(input):
-    print "input", input
+    #print "input", input
     f = open(input, "r")
     html = f.read();
     f.close()
@@ -93,13 +93,19 @@ def get_clean_content(input):
     title = obj.find("title")[0].text 
     content = title + "\n"
 
-    body  = obj.find("div.articleBody").find('p').text()
+    body = ""
+    for item in obj.find("div.articleBody").find('p'):
+        try:
+            body = body + item.text_content()
+            #print item.text_content()
+        except UnicodeDecodeError:
+            continue
 
-    if body == None:
-        body = obj.find("div.area").find('p').text()
+    for item in obj.find("div.area").find('p'):
+        body = body + item.text_content()
 
-    if body == None:
-        body = obj.find("NYT_TEXT").find("p").text()
+    for item in obj.find("NYT_TEXT").find("p"):
+        body = body + item.text_content()
 
     if body != None:
         content = content + body
@@ -153,7 +159,7 @@ def do_job(start_year, start_mon, start_day, end_year, end_mon, end_day, topic):
 
 
 
-do_job("2005", "01", "12", "2013", "12", "31", "japan")
+do_job("2006", "01", "23", "2013", "12", "31", "japan")
 
 #generate_js("1981", "01", "01",  "japan", 1)
 #get_targets("1981", "01", "01",  "japan", 1)
